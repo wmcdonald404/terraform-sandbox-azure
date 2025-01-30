@@ -1,2 +1,249 @@
 # terraform-sandbox-azure
 Simple Terraform playground to create an Azure Vnet associated resources and Azure VM instance(s).
+
+## Prerequisites
+
+### Software Prerequisites
+
+You will need the following prerequisites:
+
+1. [An Azure Free or Pay-as-you-go subscription](https://developer.hashicorp.com/terraform/tutorials/azure-get-started/azure-build#prerequisites)
+2. [The Azure CLI installed](https://learn.microsoft.com/en-us/cli/azure/install-azure-cli-linux?pivots=apt)
+3. [Terraform or OpenTofu installed](https://developer.hashicorp.com/terraform/install)
+
+> **Note:** Unless *you know* you need the bleeding edge Terraform, OpenTofu or Azure CLI or related modules, use your distribution's package manager to get started. 
+
+Once you understand the workflow more fully, you can choose an appropriate balance between convenience  and control.
+
+**Convenience** would be an upstream vendor-packaged tooling. e.g. the Fedora, Red Hat, Debian or Ubunty versions of Terraform or Azure CLI.
+
+**Control** would be the source vendor's releases directly from OpenTofu, Hashicorp and/or Microsoft.
+
+## Azure Account Setup
+
+1. Log in to Azure
+
+    ```
+    [wmcdonald@fedora ~]$ az login
+    ```
+
+2. Complete the browser log in
+
+3. Validate the account/log in status
+
+    ```
+    [wmcdonald@fedora ~]$ az account show
+    {
+        "environmentName": "AzureCloud",
+        "homeTenantId": "<home-tennant-id>",
+        "id": "<id>>",
+        "isDefault": true,
+        "managedByTenants": [],
+        "name": "Pay-As-You-Go",
+        "state": "Enabled",
+        "tenantDefaultDomain": "<domain>",
+        "tenantDisplayName": "Default Directory",
+        "tenantId": "<tennant-id>",
+        "user": {
+            "name": "<wmcdonald>",
+            "type": "user"
+        }
+    }
+    ```
+
+4. Set the `subscription_id` for the target subscription in the environment.
+
+    ```
+    [wmcdonald@fedora ~]$ export ARM_SUBSCRIPTION_ID=$(az account show | jq -r '.id')
+    [wmcdonald@fedora ~]$ echo $ARM_SUBSCRIPTION_ID
+    xxxxxxx-nnnn-mmmm-oooo-yyyyyyyyyy
+    ```
+
+**Note:** This can also be [set in the Terraform code](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs#argument-reference).
+
+## Terraform Configuration
+
+1. Check that no resource groups exist in the configured account/subscription
+
+    ```
+    [wmcdonald@fedora ~]$ az group list
+    []
+    ```
+
+    > **Note:** Any NetworkWatcherRG entries can be ignored.
+
+2. Review the boilerplate code in `main.tf`:
+
+    ```
+    # Configure the Azure provider
+    terraform {
+        required_providers {
+                azurerm = {
+                    source  = "hashicorp/azurerm"
+                    # version = "~> 3.0.2"
+                }
+        }
+
+        # required_version = ">= 1.1.0"
+    }
+
+    provider "azurerm" {
+        features {}
+    }
+
+    resource "azurerm_resource_group" "rg" {
+        name     = "rg-demo"
+        location = "uksouth"
+    }
+    ```
+
+    > **Note:** traditionally `version` and `required_version` would be explicitly pinned for a provider. Here we have these commented to pull the latest version.
+
+3. Run a Terraform `init`, this will install the required backend and providers:
+
+    ```
+    [wmcdonald@fedora ~]$ terraform init
+    Initializing the backend...
+    Initializing provider plugins...
+    - Finding latest version of hashicorp/azurerm...
+    - Installing hashicorp/azurerm v4.16.0...
+    - Installed hashicorp/azurerm v4.16.0 (signed by HashiCorp)
+    Terraform has created a lock file .terraform.lock.hcl to record the provider
+    selections it made above. Include this file in your version control repository
+    so that Terraform can guarantee to make the same selections by default when
+    you run "terraform init" in the future.
+
+    Terraform has been successfully initialized!
+
+    You may now begin working with Terraform. Try running "terraform plan" to see
+    any changes that are required for your infrastructure. All Terraform commands
+    should now work.
+
+    If you ever set or change modules or backend configuration for Terraform,
+    rerun this command to reinitialize your working directory. If you forget, other
+    commands will detect it and remind you to do so if necessary.
+    ```
+
+4. Run a Terraform `plan` to review the changes that Terraform _would_ make if/when run: 
+
+    ```
+    [wmcdonald@fedora ~]$  terraform plan
+
+    Terraform used the selected providers to generate the following execution plan. Resource actions are indicated with the following symbols:
+    + create
+
+    Terraform will perform the following actions:
+
+    # azurerm_resource_group.rg will be created
+    + resource "azurerm_resource_group" "rg" {
+        + id       = (known after apply)
+        + location = "uksouth"
+        + name     = "rg-demo"
+        }
+
+    Plan: 1 to add, 0 to change, 0 to destroy.
+
+    ─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Note: You didn't use the -out option to save this plan, so Terraform can't guarantee to take exactly these actions if you run "terraform apply" now.
+    ```
+
+5. Run the Terraform `apply` to create the resources as configured
+
+    ```
+    [wmcdonald@fedora ~]$ terraform apply -auto-approve
+
+    Terraform used the selected providers to generate the following execution plan. Resource actions are indicated with the following symbols:
+    + create
+
+    Terraform will perform the following actions:
+
+    # azurerm_resource_group.rg will be created
+    + resource "azurerm_resource_group" "rg" {
+        + id       = (known after apply)
+        + location = "uksouth"
+        + name     = "rg-demo"
+        }
+
+    Plan: 1 to add, 0 to change, 0 to destroy.
+    azurerm_resource_group.rg: Creating...
+    azurerm_resource_group.rg: Creation complete after 10s [id=/subscriptions/xxxxxxx-nnnn-mmmm-oooo-yyyyyyyyyy/resourceGroups/rg-demo]
+
+    Apply complete! Resources: 1 added, 0 changed, 0 destroyed.
+
+    ```
+
+6. Run a Terraform `show` to review the resources under Terraform management:
+
+    ```
+    [wmcdonald@fedora ~]$ terraform show
+    # azurerm_resource_group.rg:
+    resource "azurerm_resource_group" "rg" {
+        id         = "/subscriptions/xxxxxxx-nnnn-mmmm-oooo-yyyyyyyyyy/resourceGroups/rg-demo"
+        location   = "uksouth"
+        managed_by = null
+        name       = "rg-demo"
+    }
+    ```
+7. Re-run the Azure CLI command to review the Azure Resource Groups that exist.
+
+    ```
+    [wmcdonald@fedora ~]$ az group list
+    [
+    {
+        "id": "/subscriptions/xxxxxxx-nnnn-mmmm-oooo-yyyyyyyyyy/resourceGroups/rg-demo",
+        "location": "uksouth",
+        "managedBy": null,
+        "name": "rg-demo",
+        "properties": {
+        "provisioningState": "Succeeded"
+        },
+        "tags": {},
+        "type": "Microsoft.Resources/resourceGroups"
+    }
+    ]
+    ```
+
+8. Run a Terraform `destroy` to clean up the resources we've created:
+
+    > **Note:** if you are working in multiple Azure subscriptions or a real environment, exercise due care and common sense. This **will delete stuff**.
+
+    ```
+    [wmcdonald@fedora ~]$ terraform destroy -auto-approve
+    azurerm_resource_group.rg: Refreshing state... [id=/subscriptions/xxxxxxx-nnnn-mmmm-oooo-yyyyyyyyyy/resourceGroups/rg-demo]
+
+    Terraform used the selected providers to generate the following execution plan. Resource actions are indicated with the following symbols:
+    - destroy
+
+    Terraform will perform the following actions:
+
+    # azurerm_resource_group.rg will be destroyed
+    - resource "azurerm_resource_group" "rg" {
+        - id         = "/subscriptions/xxxxxxx-nnnn-mmmm-oooo-yyyyyyyyyy/resourceGroups/rg-demo" -> null
+        - location   = "uksouth" -> null
+        - name       = "rg-demo" -> null
+        - tags       = {} -> null
+            # (1 unchanged attribute hidden)
+        }
+
+    Plan: 0 to add, 0 to change, 1 to destroy.
+    azurerm_resource_group.rg: Destroying... [id=/subscriptions/xxxxxxx-nnnn-mmmm-oooo-yyyyyyyyyy/resourceGroups/rg-demo]
+    azurerm_resource_group.rg: Still destroying... [id=/subscriptions/xxxxxxx-nnnn-mmmm-oooo-yyyyyyyyyy/resourceGroups/rg-demo, 10s elapsed]
+    azurerm_resource_group.rg: Destruction complete after 17s
+
+    Destroy complete! Resources: 1 destroyed.
+
+    ```
+
+9. Just double-check that the Azure Resource Group is gone using the Azure CLI command as an external validation point:
+
+    ```
+    [wmcdonald@fedora ~]$ az group list
+    []
+    ```
+
+## References
+
+- https://learn.microsoft.com/en-us/azure/developer/terraform/quickstart-configure
+- https://developer.hashicorp.com/terraform/tutorials/azure-get-started
+- https://kosztkas.github.io/
