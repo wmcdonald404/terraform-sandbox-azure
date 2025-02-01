@@ -270,6 +270,9 @@ Once you understand the workflow more fully, you can choose an appropriate balan
 
     Note that there are far more resources than in the previous simple resource group example. There's an example graph of resources in `./assets/images/vm-debian-dep-tree.png`
 
+    ![dependency tree](https://github.com/wmcdonald404/terraform-sandbox-azure/blob/main/assets/images/vm-debian-dep-tree.png?raw=true)
+
+
 4. Run a Terraform `init`, this will install the required backend and providers:
 
     ```
