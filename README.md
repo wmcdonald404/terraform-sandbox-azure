@@ -61,27 +61,33 @@ Once you understand the workflow more fully, you can choose an appropriate balan
 
 **Note:** This can also be [set in the Terraform code](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs#argument-reference).
 
-## Terraform Configuration
+## Basic Resource Group Creation
 
-1. Check that no resource groups exist in the configured account/subscription
+1. Switch into the `basic-resource-group` directory
 
     ```
-    [wmcdonald@fedora ~]$ az group list
+    [wmcdonald@fedora ~]$ cd ~/terraform-sandbox-azure/basic-resource-group
+    ```
+
+2. Check that no resource groups exist in the configured account/subscription
+
+    ```
+    [wmcdonald@fedora basic-resource-group]$ az group list
     []
     ```
 
     > **Note:** Any NetworkWatcherRG entries can be ignored.
 
-2. Review the boilerplate code in `main.tf`:
+3. Review the boilerplate code in `./basic-resource-group/main.tf`:
 
     ```
     # Configure the Azure provider
     terraform {
         required_providers {
-                azurerm = {
-                    source  = "hashicorp/azurerm"
-                    # version = "~> 3.0.2"
-                }
+            azurerm = {
+                source  = "hashicorp/azurerm"
+                # version = "~> 3.0.2"
+            }
         }
 
         # required_version = ">= 1.1.0"
@@ -89,6 +95,7 @@ Once you understand the workflow more fully, you can choose an appropriate balan
 
     provider "azurerm" {
         features {}
+        # subscription_id = "xxxxxxx-nnnn-mmmm-oooo-yyyyyyyyyy"
     }
 
     resource "azurerm_resource_group" "rg" {
@@ -99,10 +106,10 @@ Once you understand the workflow more fully, you can choose an appropriate balan
 
     > **Note:** traditionally `version` and `required_version` would be explicitly pinned for a provider. Here we have these commented to pull the latest version.
 
-3. Run a Terraform `init`, this will install the required backend and providers:
+4. Run a Terraform `init`, this will install the required backend and providers:
 
     ```
-    [wmcdonald@fedora ~]$ terraform init
+    [wmcdonald@fedora basic-resource-group]$ terraform init
     Initializing the backend...
     Initializing provider plugins...
     - Finding latest version of hashicorp/azurerm...
@@ -124,10 +131,10 @@ Once you understand the workflow more fully, you can choose an appropriate balan
     commands will detect it and remind you to do so if necessary.
     ```
 
-4. Run a Terraform `plan` to review the changes that Terraform _would_ make if/when run: 
+5. Run a Terraform `plan` to review the changes that Terraform _would_ make if/when run: 
 
     ```
-    [wmcdonald@fedora ~]$  terraform plan
+    [wmcdonald@fedora basic-resource-group]$  terraform plan
 
     Terraform used the selected providers to generate the following execution plan. Resource actions are indicated with the following symbols:
     + create
@@ -148,10 +155,10 @@ Once you understand the workflow more fully, you can choose an appropriate balan
     Note: You didn't use the -out option to save this plan, so Terraform can't guarantee to take exactly these actions if you run "terraform apply" now.
     ```
 
-5. Run the Terraform `apply` to create the resources as configured
+6. Run the Terraform `apply` to create the resources as configured
 
     ```
-    [wmcdonald@fedora ~]$ terraform apply -auto-approve
+    [wmcdonald@fedora basic-resource-group]$ terraform apply -auto-approve
 
     Terraform used the selected providers to generate the following execution plan. Resource actions are indicated with the following symbols:
     + create
@@ -170,13 +177,12 @@ Once you understand the workflow more fully, you can choose an appropriate balan
     azurerm_resource_group.rg: Creation complete after 10s [id=/subscriptions/xxxxxxx-nnnn-mmmm-oooo-yyyyyyyyyy/resourceGroups/rg-demo]
 
     Apply complete! Resources: 1 added, 0 changed, 0 destroyed.
-
     ```
 
-6. Run a Terraform `show` to review the resources under Terraform management:
+7. Run a Terraform `show` to review the resources under Terraform management:
 
     ```
-    [wmcdonald@fedora ~]$ terraform show
+    [wmcdonald@fedora basic-resource-group]$ terraform show
     # azurerm_resource_group.rg:
     resource "azurerm_resource_group" "rg" {
         id         = "/subscriptions/xxxxxxx-nnnn-mmmm-oooo-yyyyyyyyyy/resourceGroups/rg-demo"
@@ -185,10 +191,10 @@ Once you understand the workflow more fully, you can choose an appropriate balan
         name       = "rg-demo"
     }
     ```
-7. Re-run the Azure CLI command to review the Azure Resource Groups that exist.
+8. Re-run the Azure CLI command to review the Azure Resource Groups that exist.
 
     ```
-    [wmcdonald@fedora ~]$ az group list
+    [wmcdonald@fedora basic-resource-group]$ az group list
     [
     {
         "id": "/subscriptions/xxxxxxx-nnnn-mmmm-oooo-yyyyyyyyyy/resourceGroups/rg-demo",
@@ -204,12 +210,12 @@ Once you understand the workflow more fully, you can choose an appropriate balan
     ]
     ```
 
-8. Run a Terraform `destroy` to clean up the resources we've created:
+9. Run a Terraform `destroy` to clean up the resources we've created:
 
     > **Note:** if you are working in multiple Azure subscriptions or a real environment, exercise due care and common sense. This **will delete stuff**.
 
     ```
-    [wmcdonald@fedora ~]$ terraform destroy -auto-approve
+    [wmcdonald@fedora basic-resource-group]$ terraform destroy -auto-approve
     azurerm_resource_group.rg: Refreshing state... [id=/subscriptions/xxxxxxx-nnnn-mmmm-oooo-yyyyyyyyyy/resourceGroups/rg-demo]
 
     Terraform used the selected providers to generate the following execution plan. Resource actions are indicated with the following symbols:
@@ -232,18 +238,136 @@ Once you understand the workflow more fully, you can choose an appropriate balan
     azurerm_resource_group.rg: Destruction complete after 17s
 
     Destroy complete! Resources: 1 destroyed.
-
     ```
 
-9. Just double-check that the Azure Resource Group is gone using the Azure CLI command as an external validation point:
+10. Just double-check that the Azure Resource Group is gone using the Azure CLI command as an external validation point:
 
     ```
-    [wmcdonald@fedora ~]$ az group list
+    [wmcdonald@fedora basic-resource-group]$ az group list
     []
     ```
+
+## Debian VM Creation
+
+1. Switch into the `vm-debian` directory
+
+    ```
+    [wmcdonald@fedora ~]$ cd ~/terraform-sandbox-azure/vm-debian
+    ```
+
+2. Check that no resource groups or virtual machines exist in the configured account/subscription
+
+    ```
+    [wmcdonald@fedora vm-debian]$ az group list
+    []
+    [wmcdonald@fedora vm-debian]$ az vm list
+    []
+    ```
+
+    > **Note:** Any NetworkWatcherRG entries can be ignored.
+
+3. Review the boilerplate code in `./vm-debian/main.tf`:
+
+    Note that there are far more resources than in the previous simple resource group example. There's an example graph of resources in `./assets/images/vm-debian-dep-tree.png`
+
+4. Run a Terraform `init`, this will install the required backend and providers:
+
+    ```
+    [wmcdonald@fedora vm-debian]$ terraform init
+    ```
+
+5. Run a Terraform `plan` to review the changes that Terraform _would_ make if/when run: 
+
+    ```
+    [wmcdonald@fedora vm-debian]$ terraform plan
+    ```
+
+    You can view a limited subset of `plan` output using:
+    ```
+    [wmcdonald@fedora vm-debian]$ terraform plan | grep -E '( *#)|( *+ name)'
+    ```
+
+6. Run the Terraform `apply` to create the resources as configured
+
+    ```
+    [wmcdonald@fedora basic-resource-group]$ terraform apply -auto-approve
+    ```
+
+    Creation of the VM and the resources it depends on may take a minute or two. At the end the process will `output` the resource group name and public IP for the created instance:
+
+    ```
+    Apply complete! Resources: 10 added, 0 changed, 0 destroyed.
+    
+    Outputs:
+
+    public_ip_address = "172.167.122.193"
+    resource_group_name = "rg-debian-demo"
+    ```
+
+7. Test connectivity to the virtual machine using the `output` public IP address:
+
+    ```
+    [wmcdonald@fedora vm-debian]$ ssh debian@172.167.122.193 -i ~/.ssh/azure_id_rsa
+    
+    Are you sure you want to continue connecting (yes/no/[fingerprint])? yes
+    debian@vm-debian-demo:~$ 
+    ```
+    
+    Once connected, we can validate the VM's access to the [Azure Instance Metadata Service (IMDS)](https://learn.microsoft.com/en-us/azure/virtual-machines/instance-metadata-service?tabs=linux)
+
+    ```
+    debian@vm-debian-demo:~$ sudo apt-get update
+    debian@vm-debian-demo:~$ sudo apt install -y jq
+    debian@vm-debian-demo:~$ curl -s -H Metadata:true --noproxy "*" "http://169.254.169.254/metadata/instance?api-version=2021-02-01" | jq
+    ```
+
+8. Run a Terraform `show` to review the resources under Terraform management:
+
+    ```
+    [wmcdonald@fedora basic-resource-group]$ terraform show
+    ```
+
+9. Re-run the Azure CLI command to review the Azure Resource Group(s) and Virtual Machine(s) that exist.
+
+    ```
+    [wmcdonald@fedora vm-debian]$ $ az group list | jq '.[]| .name, .id'
+    "NetworkWatcherRG"
+    "/subscriptions/xxxxxxx-nnnn-mmmm-oooo-yyyyyyyyyy/resourceGroups/NetworkWatcherRG"
+    "rg-debian-demo"
+    "/subscriptions/xxxxxxx-nnnn-mmmm-oooo-yyyyyyyyyy/resourceGroups/rg-debian-demo"
+
+    [wmcdonald@fedora vm-debian]$ az vm list | jq '.[]|.name, .hardwareProfile.vmSize'
+    "vm-debian-demo"
+    "Standard_B1s"
+    ```
+
+10. Run a Terraform `destroy` to clean up the resources we've created:
+
+    > **Note:** if you are working in multiple Azure subscriptions or a real environment, exercise due care and common sense. ONCE AGAIN, this **will delete stuff**.
+
+    ```
+    [wmcdonald@fedora basic-resource-group]$ terraform destroy -auto-approve
+    Plan: 0 to add, 0 to change, 10 to destroy.
+    Destroy complete! Resources: 10 destroyed.
+    ```
+
+11. Just double-check that the Azure Resource Group is gone using the Azure CLI command as an external validation point:
+
+    ```
+    [wmcdonald@fedora vm-debian]$ $ az group list | jq '.[]| .name, .id'
+    "NetworkWatcherRG"
+    "/subscriptions/xxxxxxx-nnnn-mmmm-oooo-yyyyyyyyyy/resourceGroups/NetworkWatcherRG"
+    
+    [wmcdonald@fedora vm-debian]$ az vm list | jq '.[]|.name, .hardwareProfile.vmSize'
+    "vm-debian-demo"
+    "Standard_B1s"
+    ```
+
+    > **Note:** Any NetworkWatcherRG entries can be ignored.
 
 ## References
 
 - https://learn.microsoft.com/en-us/azure/developer/terraform/quickstart-configure
 - https://developer.hashicorp.com/terraform/tutorials/azure-get-started
 - https://kosztkas.github.io/
+- https://learn.microsoft.com/en-us/azure/virtual-machines/windows/quick-create-terraform
