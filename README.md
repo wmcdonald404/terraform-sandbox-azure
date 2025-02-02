@@ -1,15 +1,17 @@
 # terraform-sandbox-azure
 Simple Terraform playground to create an Azure Vnet associated resources and Azure VM instance(s).
 
+## Caveat
+This does not demonstrate best practices for Terraform, or public cloud management. It's Just Enough to understand some of the basic concepts, spin up and tear down some simple resources with very few guard rails or controls.
+
 ## Prerequisites
-
-### Software Prerequisites
-
 You will need the following prerequisites:
 
 1. [An Azure Free or Pay-as-you-go subscription](https://developer.hashicorp.com/terraform/tutorials/azure-get-started/azure-build#prerequisites)
-2. [The Azure CLI installed](https://learn.microsoft.com/en-us/cli/azure/install-azure-cli-linux?pivots=apt)
-3. [Terraform or OpenTofu installed](https://developer.hashicorp.com/terraform/install)
+2. A machine to run Terraform and the Azure CLI at a minimum. You [could use Windows natively](https://learn.microsoft.com/en-us/azure/developer/terraform/get-started-windows-bash), but WSL or a Linux host will probably be less painful. 
+3. Git installed
+4. [The Azure CLI installed](https://learn.microsoft.com/en-us/cli/azure/install-azure-cli-linux?pivots=apt)
+5. [Terraform or OpenTofu installed](https://developer.hashicorp.com/terraform/install)
 
 > **Note:** Unless *you know* you need the bleeding edge Terraform, OpenTofu or Azure CLI or related modules, use your distribution's package manager to get started. 
 
@@ -20,7 +22,6 @@ Once you understand the workflow more fully, you can choose an appropriate balan
 **Control** would be the source vendor's releases directly from OpenTofu, Hashicorp and/or Microsoft.
 
 ## Azure Account Setup
-
 1. Log in to Azure
 
     ```
@@ -61,8 +62,22 @@ Once you understand the workflow more fully, you can choose an appropriate balan
 
 **Note:** This can also be [set in the Terraform code](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs#argument-reference).
 
-## Basic Resource Group Creation
+## Git Repository
+1. Clone the Git repository:
+   
+    ```
+    [wmcdonald@fedora ~ ]$ git clone https://github.com/wmcdonald404/terraform-sandbox-azure 
+    ```
 
+2. Switch into the directory:
+
+    ```
+    [wmcdonald@fedora ~ ]$ cd terraform-sandbox-azure/
+    /home/wmcdonald/terraform-sandbox-azure
+    [wmcdonald@fedora terraform-sandbox-azure (main ✓)]$ 
+    ```
+
+## Basic Resource Group Creation
 1. Switch into the `basic-resource-group` directory
 
     ```
@@ -248,7 +263,6 @@ Once you understand the workflow more fully, you can choose an appropriate balan
     ```
 
 ## Debian VM Creation
-
 1. Switch into the `vm-debian` directory
 
     ```
@@ -369,8 +383,8 @@ Once you understand the workflow more fully, you can choose an appropriate balan
     > **Note:** Any NetworkWatcherRG entries can be ignored.
 
 ## References
-
+- https://kosztkas.github.io/
+- https://github.com/wmcdonald404/terraform-sandbox-aws
 - https://learn.microsoft.com/en-us/azure/developer/terraform/quickstart-configure
 - https://developer.hashicorp.com/terraform/tutorials/azure-get-started
-- https://kosztkas.github.io/
 - https://learn.microsoft.com/en-us/azure/virtual-machines/windows/quick-create-terraform
