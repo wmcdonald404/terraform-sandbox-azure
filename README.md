@@ -1,5 +1,9 @@
 # terraform-sandbox-azure
-Simple Terraform playground to create an Azure Vnet associated resources and Azure VM instance(s).
+Simple Terraform playground to create an Azure Resource Group and review,
+
+Then to create a Resource Group, Vnet, Subnets, Network Security Group(s) and associated resources and then Azure VM instance(s).
+
+This is an Azure-flavoured version of [terraform-sandbox-aws](https://github.com/wmcdonald404/terraform-sandbox-aws/blob/main/README.md).
 
 ## Caveat
 This does not demonstrate best practices for Terraform, or public cloud management. It's Just Enough to understand some of the basic concepts, spin up and tear down some simple resources with very few guard rails or controls.
@@ -225,7 +229,9 @@ Once you understand the workflow more fully, you can choose an appropriate balan
     ]
     ```
 
-9. Run a Terraform `destroy` to clean up the resources we've created:
+9. Log in to the [Azure portal](https://portal.azure.com/#home) and click around to review/visualise what's been created.
+
+10. Run a Terraform `destroy` to clean up the resources we've created:
 
     > **Note:** if you are working in multiple Azure subscriptions or a real environment, exercise due care and common sense. This **will delete stuff**.
 
@@ -255,12 +261,16 @@ Once you understand the workflow more fully, you can choose an appropriate balan
     Destroy complete! Resources: 1 destroyed.
     ```
 
-10. Just double-check that the Azure Resource Group is gone using the Azure CLI command as an external validation point:
+11. Just double-check that the Azure Resource Group is gone using the Azure CLI command as an external validation point:
 
     ```
     [wmcdonald@fedora basic-resource-group]$ az group list
     []
     ```
+
+12. Log in to the [Azure portal](https://portal.azure.com/#home) again, click around to verify resources have been destroyed.
+
+    > **Note:** The Resource Group may still appear in the Recent section of the portal's landing page but navigate specifically to the [Resource Groups view](https://portal.azure.com/#browse/resourcegroups) to verify the demonstration resource group has been removed.
 
 ## Debian VM Creation
 1. Switch into the `vm-debian` directory
@@ -358,7 +368,9 @@ Once you understand the workflow more fully, you can choose an appropriate balan
     "Standard_B1s"
     ```
 
-10. Run a Terraform `destroy` to clean up the resources we've created:
+10. Again log in to the [Azure portal](https://portal.azure.com/#home) and click around to review/visualise what's been created.
+
+11. Run a Terraform `destroy` to clean up the resources we've created:
 
     > **Note:** if you are working in multiple Azure subscriptions or a real environment, exercise due care and common sense. ONCE AGAIN, this **will delete stuff**.
 
@@ -368,7 +380,7 @@ Once you understand the workflow more fully, you can choose an appropriate balan
     Destroy complete! Resources: 10 destroyed.
     ```
 
-11. Just double-check that the Azure Resource Group is gone using the Azure CLI command as an external validation point:
+12. Just double-check that the Azure Resource Group is gone using the Azure CLI command as an external validation point:
 
     ```
     [wmcdonald@fedora vm-debian]$ $ az group list | jq '.[]| .name, .id'
